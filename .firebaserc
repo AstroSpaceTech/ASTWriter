@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "ast-test-56166",
+    "?": "astwriter",
+    "staging": "astwriterapp"
+  }
+}

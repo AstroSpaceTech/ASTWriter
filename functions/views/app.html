@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ASTWriter</title>
+    <meta charset="utf-8"> 
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css" />
+
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    
+    <link rel="apple-touch-icon" sizes="128x128" href="favicon.ico">
+    <link rel="icon" sizes="192x192" href="favicon.ico">
+	
+    <!-- Web Application Manifest -->
+	<!-- <link rel="manifest" href="manifest.webmanifest"> -->
+	
+	<!-- Add to homescreen for Chrome on Android -->
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="application-name" content="ASTWriter">
+	<meta name="theme-color" content="#40cf51">
+	
+	<!-- Add to homescreen for Safari on iOS -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="ASTWriter">
+	<meta name="apple-mobile-web-app-status-bar-style" content="#40cf51">
+	
+	<!-- Tile icon for Win8 -->
+	<meta name="msapplication-TileColor" content="#40cf51">
+	<meta name="msapplication-navbutton-color" content="#40cf51">
+
+    <script type="text/javascript" src="assets/js/Markdown.Converter.js"></script>
+    <script type="text/javascript" src="assets/js/Markdown.Sanitizer.js"></script>
+    <script type="text/javascript" src="assets/js/Markdown.Editor.js"></script>
+</head>
+
+<body style="text-align: center;">
+    <div class="wmd-panel">
+        <div id="wmd-button-bar"></div>
+        <h1 style="float: left; font-family: monospace; color: greenyellow; text-shadow: blueviolet 5px 5px 5px;">ASTWriter</h1>
+        <div>
+            <img oncontextmenu="return false;" style="float: right; display: block; cursor: pointer;" id="out-switch" src="assets/img/preview.png" onclick="outSwitch();"></img>
+            <img oncontextmenu="return false;" style="float: right; display: none; cursor: pointer;" id="in-switch" src="assets/img/write.png" onclick="inSwitch();"></img>
+            <img oncontextmenu="return false;" id="open-button" class="open-button" style="float: right; cursor: pointer;" src="assets/img/metadata.png" onclick="metadataIn();" />
+            <img oncontextmenu="return false;" style="float: right; cursor: pointer;" src="assets/img/publish.png" onclick="publish();" />
+        </div>
+        <textarea style="display: block;" class="wmd-input" id="wmd-input" 
+placeholder="Type Your Post here...
+
+type in Markdown syntax and see the preview(can be different from how it'll look like on the website) by clicking on an eye on the top right corner of the screan.
+
+if you're not good at markdown syntax, you can use the above tool-bar too!
+
+click on the cloud button to upload your post to AstroSpaceTech.in website.
+
+click on the middle button to give metadata to your post. (if you don't provide metadata you won't be able to upload your post)
+
+if you find any bugs, report at https://github.com/AstroSpaceTech/AstroSpaceTech.github.io/issues/new"></textarea>
+</div>    
+    <div style="display: none; margin: 20vh 0;" id="wmd-preview" class="wmd-panel wmd-preview"></div>
+    <div style="text-align: center;">
+        <span  style="font-size: 12px; color: white; background-color: grey;"> Copyright &copy; <script>document.write(new Date().getFullYear())</script> <a target="_blank" href="https://XinYaanZyoy.github.io" style="text-decoration: none; color: black;"> XinYaanZyoy(心言自由) The Helper Boy </a></span>
+    </div>
+
+    <div style="text-align: center;">
+        <div class="modal-overlay" style="display: none;" id="modal-overlay"></div>
+        <div class="modal" style="display: none;" id="modal">
+          <button class="close-button" id="close-button" onclick="metadataOut();">&#x2716;</button>
+          <div class="modal-guts">
+            <h1>Metadata form</h1>
+            Title: <input name="title" type="text" id="title" placeholder="give title to this post"><br/><br/>
+            Category: <input name="category" type="text" id="category" placeholder="enter a category"><br/><br/>
+            Tags: <input name="tags" type="text" id="tags" placeholder="hashtags seperate by comma"><br/><br/>
+            <input type='file' onchange="readImageURL(this);" />
+            <img id="post_img" style="max-width: 180px;" src="http://placehold.it/180" alt="image of this post" />
+          </div>
+        </div>
+    </div>
+
+    <div style="text-align: center;">
+        <div class="loading-overlay" style="display: none;" id="loading-overlay"></div>
+        <div class="loading" style="display: none; text-align: center;" id="loading">
+            <h1>LOADING...</h1>
+                <img id="loadergif" src="assets/img/loading.gif" />
+        </div>
+    </div>
+    
+    <script type="text/javascript">
+        (function () {
+            var converter1 = Markdown.getSanitizingConverter();
+
+            converter1.hooks.chain("preBlockGamut", function (text, rbg) {
+                return text.replace(/^ {0,3}""" *\n((?:.*?\n)+?) {0,3}""" *$/gm, function (whole, inner) {
+                    return "<blockquote>" + rbg(inner) + "</blockquote>\n";
+                });
+            });
+
+            var editor1 = new Markdown.Editor(converter1);
+
+            editor1.run();
+
+            var converter2 = new Markdown.Converter();
+
+            converter2.hooks.chain("preConversion", function (text) {
+                return text.replace(/\b(a\w*)/gi, "*$1*");
+            });
+
+            converter2.hooks.chain("plainLinkText", function (url) {
+                return "This is a link to " + url.replace(/^https?:\/\//, "");
+            });
+
+            var help = function () {
+                alert("Do you need help?");
+            }
+            var options = {
+                helpButton: {
+                    handler: help
+                },
+                strings: {
+                    quoteexample: "whatever you're quoting, put it right here"
+                }
+            };
+            var editor2 = new Markdown.Editor(converter2, "-second", options);
+
+            editor2.run();
+        })();
+    </script>
+        <script>
+            function inSwitch(){
+                document.getElementsByTagName("body")[0].style.textAlign = "center";
+                var inarea = document.getElementById("wmd-input");
+                var outarea = document.getElementById("wmd-preview");
+                var outIcon = document.getElementById("out-switch");
+                var inIcon = document.getElementById("in-switch");
+                inarea.style.display = "block";
+                inIcon.style.display = "none";
+                outarea.style.display = "none";
+                outIcon.style.display = "block";
+            }
+
+            function outSwitch(){
+                document.getElementsByTagName("body")[0].style.textAlign = "unset";
+                var inarea = document.getElementById("wmd-input");
+                var outarea = document.getElementById("wmd-preview");
+                var outIcon = document.getElementById("out-switch");
+                var inIcon = document.getElementById("in-switch");
+                inarea.style.display = "none";
+                inIcon.style.display = "block";
+                outarea.style.display = "block";
+                outIcon.style.display = "none";
+            }
+
+            function publish(){
+                firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+                    var inarea = document.getElementById("wmd-input");
+                    if(inarea.value!=""){
+                        var title = document.getElementById("title");
+                        var category = document.getElementById("category");
+                        var tags = document.getElementById("tags");
+                        if(title.value!="" && category.value!="" && tags.value!=""){
+                            var loading = document.getElementById("loading");
+                            var loadingOverlay = document.getElementById("loading-overlay");
+                            loading.style.display = "block";
+                            loadingOverlay.style.display = "block";
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('POST', `${window.location.origin}/publish`);
+                            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                            xhr.onreadystatechange = function(s) { // Call a function when the state changes.
+                                if (this.readyState === xhr.DONE && this.status === 200) {
+                                    loading.style.display = "none";
+                                    loadingOverlay.style.display = "none";
+                                    // Request finished. Do processing here.
+                                    alert(xhr.responseText);
+                                }
+                            }
+                            var post_data = {
+                                "idtoken": idToken,
+                                "content": inarea.value,
+                                "metadata": {
+                                    "title": title.value,
+                                    "category": category.value,
+                                    "tags": tags.value
+                                    // "image": `/assets/images/posts/${}`
+                                }
+                            }
+                            xhr.send(JSON.stringify(post_data));
+                        }
+                        else{
+                            alert("❌error! Empty Metadata Form submitted >")
+                        }
+                    }
+                    else{
+                        alert("❌error! Empty post! >");
+                    }
+                }).catch(function(err){
+                        console.log(err);
+                    });
+            }
+
+            function metadataIn(){
+                var modal = document.getElementById("modal");
+                var modalOverlay = document.getElementById("modal-overlay");
+                modal.style.display = "block";
+                modalOverlay.style.display = "block";
+            }
+
+            function metadataOut(){
+                var modal = document.getElementById("modal");
+                var modalOverlay = document.getElementById("modal-overlay");
+                modal.style.display = "none";
+                modalOverlay.style.display = "none";
+            }
+
+            function readImageURL(input) {
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = e=>document.getElementById("post_img").setAttribute("src", e.target.result);
+                    reader.readAsDataURL(input.files[0]);
+                    return e.target.result;
+                }
+            }
+        </script>
+        <script>
+            var title = document.getElementById("title");
+            var category = document.getElementById("category");
+            var tags = document.getElementById("tags");
+            title.addEventListener("input", ()=>title.value = title.value.replace(/ /g,"-"));
+            category.addEventListener("input", ()=>category.value = category.value.replace(/[^A-Za-z]/g,''));
+            tags.addEventListener("input", ()=>tags.value = tags.value.replace(/ /g,","));
+        </script>
+</body>
+
+</html>

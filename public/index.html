@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ASTWriter</title>
+    <meta charset="utf-8"> 
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css" />
+
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    
+    <link rel="apple-touch-icon" sizes="128x128" href="favicon.ico">
+    <link rel="icon" sizes="192x192" href="favicon.ico">
+	
+    <!-- Web Application Manifest -->
+	<link rel="manifest" href="manifest.json">
+	
+	<!-- Add to homescreen for Chrome on Android -->
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="application-name" content="ASTWriter">
+	<meta name="theme-color" content="#40cf51">
+	
+	<!-- Add to homescreen for Safari on iOS -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="ASTWriter">
+	<meta name="apple-mobile-web-app-status-bar-style" content="#40cf51">
+	
+	<!-- Tile icon for Win8 -->
+	<meta name="msapplication-TileColor" content="#40cf51">
+	<meta name="msapplication-navbutton-color" content="#40cf51">
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.4/firebase-app.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.4/firebase-auth.js"></script>
+
+<script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyAivuPEV6eU6yei2adTUHj5frPquVktwVU",
+        authDomain: "astwriterapp.firebaseapp.com",
+        databaseURL: "https://astwriterapp.firebaseio.com",
+        projectId: "astwriterapp",
+        storageBucket: "astwriterapp.appspot.com",
+        messagingSenderId: "433140711149",
+        appId: "1:433140711149:web:c1f9a0ed9e5f3b91b616e4",
+        measurementId: "G-097KD729NV"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+    <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+    <script>
+        var res;
+        // Initialize the FirebaseUI Widget using Firebase.
+        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+        var uiConfig = {
+            callbacks: {
+                signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+                    firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+                        var loading = document.getElementById("loading");
+                        var loadingOverlay = document.getElementById("loading-overlay");
+                        loading.style.display = "block";
+                        loadingOverlay.style.display = "block";
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('GET', `${window.location.origin}/app`);
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                        console.log(idToken);
+                        xhr.setRequestHeader("idtoken",idToken);
+                        xhr.onreadystatechange = function(s) { // Call a function when the state changes.
+                            if (this.readyState === xhr.DONE && this.status === 200) {
+                                loading.style.display = "none";
+                                loadingOverlay.style.display = "none";
+                                document.open();
+                                document.write(xhr.responseText);
+                                document.close();
+                            }
+                        }
+                        xhr.send();
+                    }).catch(function(err) {
+                        console.log(err);
+                    });
+                    return false;
+                },
+                uiShown: function() {
+                // The widget is rendered.
+                // Hide the loader.
+                document.getElementById('loader').style.display = 'none';
+                }
+            },
+            // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
+            // signInFlow: 'popup',
+            // signInSuccessUrl: '/',
+            signInOptions: [{
+                // Leave the lines as is for the providers you want to offer your users.
+                provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                customParameters: {
+                    // Forces account selection even when one account
+                    // is available.
+                    // prompt: 'select_account'
+                }
+            }],
+            // Terms of service url.
+            tosUrl: '',
+            // Privacy policy url.
+            privacyPolicyUrl: ''
+        };
+
+        // The start method will wait until the DOM is loaded.
+        ui.start('#firebaseui-auth-container', uiConfig);
+    </script>
+    
+</head>
+
+<body style="text-align: center;">
+     <img src="assets/img/logo.png" />
+<h1 >Welcome to <span style="font-size: 30px; font-family: monospace; color: greenyellow; text-shadow: blueviolet 5px 5px 5px;">ASTWriter</span></h1>
+<div id="intro">
+    <h3>This is a WebApp to write blogs on the <a href="https://astrospacetech.in">AstroSpaceTech.in</a> </h3>
+    <p>Only The Registered & Verified Authors Are Allowed to Write at AstroSpaceTech.in</p>
+    <p>Kindly, sign in through google, if ASTWriter Recognizes you, it'll give you access to post your blogs on AstroSpaceTech.in</p>
+</div>
+<div id="firebaseui-auth-container" ></div>
+<div id="loader">Loading...</div>
+<div style="text-align: center;">
+    <div class="loading-overlay" style="display: none;" id="loading-overlay"></div>
+    <div class="loading" style="display: none; text-align: center;" id="loading">
+        <h1>LOADING...</h1>
+        <img id="loadergif" src="assets/img/loading.gif" />
+    </div>
+</div>
+<div style="text-align: center;">
+    <span  style="font-size: 12px; color: white; background-color: grey;"> Copyright &copy; <script>document.write(new Date().getFullYear())</script> <a target="_blank" href="https://XinYaanZyoy.github.io" style="text-decoration: none; color: black;"> XinYaanZyoy(心言自由) The Helper Boy </a></span>
+</div>
+</body>
+<script>
+    if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('service_worker.js').then(function(registration) {
+      // Registration was successful
+    //   console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }, function(err) {
+      // registration failed :(
+    //   console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
+</script>   
+</html>
